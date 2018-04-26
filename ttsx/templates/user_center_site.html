@@ -1,0 +1,117 @@
+{% extends 'base_user.html' %}
+
+{% block script %}
+    <script>
+        $(function () {
+            //查询所有的省信息，并显示到select中
+            $.get('/user/area', function (data) {
+                //{list1:[{},{},...]}
+                //将所有省的信息，绑定到select上
+                var province = $('#province');
+                //遍历列表data.list1==>[{},{},...]
+                $.each(data.list1, function (i, n) {//第二个参数，是一个函数，表示在每个元素上会执行这个函数
+                    //i代表元素的索引
+                    //n代表元素的值{id:***,title:***}
+                    province.append('<option value="' + n.id + '">' + n.title + '</option>');
+                });
+            });
+
+            //当选择某个省后，查询对应的市
+            $('#province').change(function () {
+                //获取当前选中省的编号
+                var province_id = $(this).val();
+                //请求服务器，查询对应的市
+                $.get('/user/area', {'pid': province_id}, function (data) {
+                    //{list1:[{},{},...]}
+                    //将所有市的信息，绑定到select上
+                    var city = $('#city').empty().append('<option value="0">请选择</option>');
+                    $('#district').empty().append('<option value="0">请选择</option>');
+                    //遍历列表data.list1==>[{},{},...]
+                    $.each(data.list1, function (i, n) {//第二个参数，是一个函数，表示在每个元素上会执行这个函数
+                        //i代表元素的索引
+                        //n代表元素的值{id:***,title:***}
+                        city.append('<option value="' + n.id + '">' + n.title + '</option>');
+                    });
+                });
+            });
+
+            //当选择某个市后，查询对应的区县
+            $('#city').change(function () {
+                //获取当前选中省的编号
+                var city_id = $(this).val();
+                //请求服务器，查询对应的市
+                $.get('/user/area', {'pid': city_id}, function (data) {
+                    //{list1:[{},{},...]}
+                    //将所有市的信息，绑定到select上
+                    var district = $('#district').empty().append('<option value="0">请选择</option>');
+                    //遍历列表data.list1==>[{},{},...]
+                    $.each(data.list1, function (i, n) {//第二个参数，是一个函数，表示在每个元素上会执行这个函数
+                        //i代表元素的索引
+                        //n代表元素的值{id:***,title:***}
+                        district.append('<option value="' + n.id + '">' + n.title + '</option>');
+                    });
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block body1 %}
+    <div class="main_con clearfix">
+        <div class="left_menu_con clearfix">
+            <h3>用户中心</h3>
+            <ul>
+                <li><a href="/user/">· 个人信息</a></li>
+                <li><a href="/user/order">· 全部订单</a></li>
+                <li><a href="#" class="active">· 收货地址</a></li>
+            </ul>
+        </div>
+        <div class="right_content clearfix">
+            <h3 class="common_title2">收货地址</h3>
+            <div class="site_con">
+                <dl>
+                    {% for addr in addr_list %}
+                        <dd>{{ addr.province.atitle }} {{ addr.city.atitle }} {{ addr.district.atitle }} {{ addr.detail_addr }}
+                            （{{ addr.receiver_name }} 收） {{ addr.receiver_mobile }}</dd>
+                    {% empty %}
+                        <dd>尚未添加收货地址</dd>
+                    {% endfor %}
+                </dl>
+            </div>
+            <h3 class="common_title2">编辑地址</h3>
+            <div class="site_con">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form_group">
+                        <label>收件人：</label>
+                        <input type="text" name="receiver_name">
+                    </div>
+                    <div class="form_group">
+                        <label>详细地址：</label>
+                        <select id="province" name="province">
+                            <option value="0">请选择</option>
+                        </select>
+                        <select id="city" name="city">
+                            <option value="0">请选择</option>
+                        </select>
+                        <select id="district" name="district">
+                            <option value="0">请选择</option>
+                        </select>
+                        <input type="text" name="detail_addr">
+                    </div>
+                    <div class="form_group">
+                        <label>邮编：</label>
+                        <input type="text" name="zip_code">
+                    </div>
+                    <div class="form_group">
+                        <label>手机：</label>
+                        <input type="text" name="receiver_mobile">
+                    </div>
+
+                    <input type="submit" value="提交" class="info_submit">
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+

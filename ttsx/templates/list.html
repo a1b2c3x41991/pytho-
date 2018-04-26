@@ -1,0 +1,118 @@
+{% extends 'base_goods.html' %}
+{% block script %}
+    <script>
+        function add_cart(sku_id) {
+            $.post('/cart/add', {
+                'sku_id': sku_id,
+                'count': 1,
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+            }, function (data) {
+                if (data.result == 'ok') {
+                    $('#show_count').html(data.total_count);
+                }
+            });
+        }
+    </script>
+{% endblock %}
+
+{% block body1 %}
+    <div class="navbar_con">
+        <div class="navbar clearfix">
+            <div class="subnav_con fl">
+                <h1>全部商品分类</h1>
+                <span></span>
+                <ul class="subnav">
+                    {% for item in category_list %}
+                        <li><a href="/list{{ item.id }}" class="{{ item.logo }}">{{ item.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <ul class="navlist fl">
+                <li><a href="/">首页</a></li>
+                <li class="interval">|</li>
+                <li><a href="/">手机生鲜</a></li>
+                <li class="interval">|</li>
+                <li><a href="/">抽奖</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="breadcrumb">
+        <a href="#">全部分类</a>
+        <span>></span>
+        <a href="#">{{ category.name }}</a>
+    </div>
+
+    <div class="main_wrap clearfix">
+        <div class="l_wrap fl clearfix">
+            <div class="new_goods">
+                <h3>新品推荐</h3>
+                <ul>
+                    {% for new in new_list %}
+                        <li>
+                            <a href="/{{ new.id }}"><img src="{{ new.default_image.url }}"></a>
+                            <h4><a href="/{{ new.id }}">{{ new.name }}</a></h4>
+                            <div class="prize">￥{{ new.price }}</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="r_wrap fr clearfix">
+            <div class="sort_bar">
+                <a href="?sort=1" {% if sort == '1' %}class="active"{% endif %}>默认</a>
+
+                {% if sort == '2' %}{#按价格升序排序#}
+                    <a href="?sort=4" class="active">价格(由大到小)</a>
+                {% elif sort == '4' %}
+                    <a href="?sort=2" class="active">价格(由小到大)</a>
+                {% else %}
+                    <a href="?sort=2">价格</a>
+                {% endif %}
+
+                <a href="?sort=3" {% if sort == '3' %}class="active"{% endif %}>人气</a>
+            </div>
+
+            <ul class="goods_type_list clearfix">
+                {% for sku in page %}
+                    <li>
+                        <a href="/{{ sku.id }}"><img src="{{ sku.default_image.url }}"></a>
+                        <h4><a href="/{{ sku.id }}">{{ sku.id }}--{{ sku.name }}</a></h4>
+                        <div class="operate">
+                            <span class="prize">￥{{ sku.price }}</span>
+                            <span class="unit">{{ sku.price }}/{{ sku.unit }}</span>
+                            <a href="javascript:add_cart({{ sku.id }});" class="add_goods" title="加入购物车"></a>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <div class="pagenation">
+                {% if page.number == 1 %}
+                    <span>首页</span>
+                    <span>上一页</span>
+                {% else %}
+                    <a href="?pindex=1&sort={{ sort }}">首页</a>
+                    <a href="?pindex={{ page.number|add:-1 }}&sort={{ sort }}">上一页</a>
+                {% endif %}
+
+                {% for p in plist %}
+                    {% if p == page.number %}
+                        <span class="active">{{ p }}</span>
+                    {% else %}
+                        <a href="?pindex={{ p }}&sort={{ sort }}">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page.number == page.paginator.num_pages %}
+                    <span>下一页</span>
+                    <span>末页</span>
+                {% else %}
+                    <a href="?pindex={{ page.number|add:1 }}&sort={{ sort }}">下一页</a>
+                    <a href="?pindex={{ page.paginator.num_pages }}&sort={{ sort }}">末页</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
